@@ -1,6 +1,6 @@
 
 
-# Walkthrough
+# Walkthrough FROM SQL INJECTION TO SHELL II
 
 The first thing to do is to deploy the iso, I used VMWare, and get the ip (using the command __ifconfig__).
 
