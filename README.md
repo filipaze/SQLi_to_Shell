@@ -4,6 +4,10 @@
 
 The first thing to do is to deploy the iso, I used VMWare, and get the ip (using the command __ifconfig__).
 
+
+![image](https://user-images.githubusercontent.com/38219437/138444044-8bb3effe-29b2-486c-bc0d-4dc96f89407a.png)
+
+
 ## Recon
 
 ### Tecnologies used:
@@ -81,8 +85,13 @@ Table: users
 +----+-------+---------------------------------------------+
 ```
 **Now that we have the username and the password, we can log in as admin.**
+
+![image](https://user-images.githubusercontent.com/38219437/138444198-b7ffc49e-1a2a-4bee-a545-b7538b5352ec.png)
+
 **After some recon we are able to note only one point to explore, and gain a reverse shell: upload images feature.**
 
+
+![image](https://user-images.githubusercontent.com/38219437/138444141-db3947ae-5757-4e5c-bfbb-19f0aeca7db2.png)
 
 ### Upload png file with php backdoor
 
