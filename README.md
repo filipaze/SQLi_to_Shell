@@ -45,7 +45,7 @@ Content-Length: 1347
 
 ### Blind SQLi
 
-I use this website to learn more about the differents usages of **sqlmap**:
+I use this website to learn more about the different uses of **sqlmap**:
 https://book.hacktricks.xyz/pentesting-web/sql-injection/sqlmap
 
 **SQLMap arguments I tried:**
@@ -91,16 +91,16 @@ Table: users
 
 ![image](https://user-images.githubusercontent.com/38219437/138444198-b7ffc49e-1a2a-4bee-a545-b7538b5352ec.png)
 
-**After some recon we are able to note only one point to explore, and gain a reverse shell: upload images feature.**
+**After some recon we can note only one point to explore, and gain a reverse shell: upload images feature.**
 
 
 
 ![image](https://user-images.githubusercontent.com/38219437/138444141-db3947ae-5757-4e5c-bfbb-19f0aeca7db2.png)
 
-### Upload png file with php backdoor
+### Upload png file with PHP backdoor
 
 **Things I try without success:**
-1. Just uploading .php file instead of jpg file
+1. Just uploading a .php file instead of jpg file
 2. Tried Case sensitives — pic.PhP also tried pic.php5, pHP5.
 3. Bypass uploads rules by intercepting the request and change the content-type to __image/jpeg__ 
 (https://vulp3cula.gitbook.io/hackers-grimoire/exploitation/web-application/file-upload-bypass)
