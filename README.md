@@ -109,6 +109,8 @@ Table: users
 
 ## Final method
 
+Most of the php web applications use the gd library to resize images. If so, the exif data will be excluded for the image. Fortunately, it was not the case! 
+
 **First we create a php file with a php backdoor inside it:**
 
 ```
